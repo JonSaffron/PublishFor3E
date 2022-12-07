@@ -1,0 +1,182 @@
+﻿<!--
+Dim tServer = Query.NxNtfServer.Current
+
+dim selectQ as ISelect = QueryBuilder.SelectFrom(tServer)
+call selectQ.Values(tServer.ServerName)
+Call selectQ.Where(tServer.Instance.IsSimilarTo("/te_3e_gd_dev/%"))
+call selectQ.Where(tServer.LastUpdate.IsGreaterOrEqualTo(Exp.CurrentTimestamp.Minus(1, DatePart.Day)))
+
+return selectQ
+-->
+
+<SELECT ID="SelectStatement" Class="NextGen.Framework.OQL.Symbols.SelectStatement" xmlns="http://elite.com/schemas/query">
+  <OQL_CONTEXT Class="NextGen.Framework.Managers.ObjectMgr.ExContextProvider">
+    <NODEMAP ID="Node#1" QueryID="NxNtfServer" Class="NextGen.Application.Query.NxNtfServer" Assembly="NextGen.Archetype.NxNtfServer" />
+  </OQL_CONTEXT>
+  <SELECT_LIST>
+    <SINGLE_SELECT Union="Distinct">
+      <NODE NodeID="Node#1" />
+      <VALUES>
+        <VALUE>
+          <LEAF QueryID="ServerName">
+            <NODE NodeID="Node#1" />
+          </LEAF>
+        </VALUE>
+      </VALUES>
+      <WHERE>
+        <X_AND_Y>
+          <X>
+            <X_IS_SIMILAR_TO_Y>
+              <X>
+                <LEAF QueryID="Instance">
+                  <NODE NodeID="Node#1" />
+                </LEAF>
+              </X>
+              <Y>
+                <UNICODE_STRING Value="%%ServerName%%" />
+              </Y>
+            </X_IS_SIMILAR_TO_Y>
+          </X>
+          <Y>
+            <X_IS_GREATER_THAN_OR_EQUAL_TO_Y>
+              <X>
+                <LEAF QueryID="LastUpdate">
+                  <NODE NodeID="Node#1" />
+                </LEAF>
+              </X>
+              <Y>
+                <X_DATESUB_Y Units="Day">
+                  <X>
+                    <CAST>
+                      <X>
+                        <CURRENT_TIMESTAMP />
+                      </X>
+                      <TYPE>
+                        <DATE_TYPE />
+                      </TYPE>
+                    </CAST>
+                  </X>
+                  <Y>
+                    <INT_NUM Value="1" />
+                  </Y>
+                </X_DATESUB_Y>
+              </Y>
+            </X_IS_GREATER_THAN_OR_EQUAL_TO_Y>
+          </Y>
+        </X_AND_Y>
+      </WHERE>
+    </SINGLE_SELECT>
+  </SELECT_LIST>
+</SELECT>
+
+
+
+POST https://dfin91tewa01.dentons.global/te_3e_gd_dev/web/transactionservice.asmx HTTP/1.1
+User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; MS Web Services Client Protocol 4.0.30319.42000)
+Content-Type: text/xml; charset=utf-8
+SOAPAction: "http://tempuri.org//ServiceExecuteProcess/GetArchetypeData"
+Authorization: Negotiate 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
+Host: dfin91tewa01.dentons.global
+Content-Length: 2520
+Expect: 100-continue
+
+<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetArchetypeData xmlns="http://tempuri.org//ServiceExecuteProcess"><selectXml>&lt;SELECT ID="SelectStatement" Class="NextGen.Framework.OQL.Symbols.SelectStatement" xmlns="http://elite.com/schemas/query"&gt;
+  &lt;OQL_CONTEXT Class="NextGen.Framework.Managers.ObjectMgr.ExContextProvider"&gt;
+    &lt;NODEMAP ID="Node#1" QueryID="NxNtfServer" Class="NextGen.Application.Query.NxNtfServer" Assembly="NextGen.Archetype.NxNtfServer" /&gt;
+  &lt;/OQL_CONTEXT&gt;
+  &lt;SELECT_LIST&gt;
+    &lt;SINGLE_SELECT Union="Distinct"&gt;
+      &lt;NODE NodeID="Node#1" /&gt;
+      &lt;VALUES&gt;
+        &lt;VALUE&gt;
+          &lt;LEAF QueryID="ServerName"&gt;
+            &lt;NODE NodeID="Node#1" /&gt;
+          &lt;/LEAF&gt;
+        &lt;/VALUE&gt;
+      &lt;/VALUES&gt;
+      &lt;WHERE&gt;
+        &lt;X_AND_Y&gt;
+          &lt;X&gt;
+            &lt;X_IS_SIMILAR_TO_Y&gt;
+              &lt;X&gt;
+                &lt;LEAF QueryID="Instance"&gt;
+                  &lt;NODE NodeID="Node#1" /&gt;
+                &lt;/LEAF&gt;
+              &lt;/X&gt;
+              &lt;Y&gt;
+                &lt;UNICODE_STRING Value="/te_3e_gd_dev/%" /&gt;
+              &lt;/Y&gt;
+            &lt;/X_IS_SIMILAR_TO_Y&gt;
+          &lt;/X&gt;
+          &lt;Y&gt;
+            &lt;X_IS_GREATER_THAN_OR_EQUAL_TO_Y&gt;
+              &lt;X&gt;
+                &lt;LEAF QueryID="LastUpdate"&gt;
+                  &lt;NODE NodeID="Node#1" /&gt;
+                &lt;/LEAF&gt;
+              &lt;/X&gt;
+              &lt;Y&gt;
+                &lt;X_DATESUB_Y Units="Day"&gt;
+                  &lt;X&gt;
+                    &lt;CAST&gt;
+                      &lt;X&gt;
+                        &lt;CURRENT_TIMESTAMP /&gt;
+                      &lt;/X&gt;
+                      &lt;TYPE&gt;
+                        &lt;DATE_TYPE /&gt;
+                      &lt;/TYPE&gt;
+                    &lt;/CAST&gt;
+                  &lt;/X&gt;
+                  &lt;Y&gt;
+                    &lt;INT_NUM Value="1" /&gt;
+                  &lt;/Y&gt;
+                &lt;/X_DATESUB_Y&gt;
+              &lt;/Y&gt;
+            &lt;/X_IS_GREATER_THAN_OR_EQUAL_TO_Y&gt;
+          &lt;/Y&gt;
+        &lt;/X_AND_Y&gt;
+      &lt;/WHERE&gt;
+    &lt;/SINGLE_SELECT&gt;
+  &lt;/SELECT_LIST&gt;
+&lt;/SELECT&gt;
+</selectXml></GetArchetypeData></soap:Body></soap:Envelope>
+
+
+
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Content-Type: text/xml; charset=utf-8
+Content-Language: en-GB
+Server: Unknown
+X-3E-Locale: en-GB
+Persistent-Auth: true
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET,PUT,PATCH,POST,DELETE,OPTIONS
+Access-Control-Allow-Headers: SoapAction,Content-Type,Authorization,Origin,X-Requested-With,X-3E-SessionId,X-3E-ActivityId,X-3E-Locale,X-3E-ProcessItemId,X-3E-Message,X-3E-MessageSeverity,X-3E-ErrorReference,X-3E-ProxyUser,Request-Id,Request-Context,traceparent,tracestate
+Access-Control-Expose-Headers: X-3E-ErrorReference,X-3E-Locale,X-3E-Message,X-3E-MessageSeverity,X-3E-ProcessItemId,X-3E-SessionId,X-3E-ActivityId,X-3E-ProxyUser,Location
+P3P: CP="CURa ADMa DEVa CONo HISa OUR IND DSP ALL COR"
+WWW-Authenticate: Negotiate oYG3MIG0oAMKAQChCwYJKoZIgvcSAQICooGfBIGcYIGZBgkqhkiG9xIBAgICAG+BiTCBhqADAgEFoQMCAQ+iejB4oAMCARKicQRvPR9W7R+dMncTsNqNhDmduuSSg3ZKN+ljbi+RMfnr1q2MUr/k0F2uRRQSWMulPHV1kWBhMA+5FDV6jW6SIwo5sFpMwCz5Ao8qnuw8Sa4NMKVBzFQhUFLBa29cZNYDmDLfSWbwJcYfYuRZBHXYLAkC
+Date: Mon, 05 Dec 2022 21:49:34 GMT
+
+293
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap:Body>
+    <GetArchetypeDataResponse xmlns="http://tempuri.org//ServiceExecuteProcess">
+      <GetArchetypeDataResult>&lt;Data&gt;
+  &lt;NxNtfServer&gt;
+    &lt;ServerName&gt;DFIN91TEWA02&lt;/ServerName&gt;
+  &lt;/NxNtfServer&gt;
+  &lt;NxNtfServer&gt;
+    &lt;ServerName&gt;DFIN91TEWA01&lt;/ServerName&gt;
+  &lt;/NxNtfServer&gt;
+&lt;/Data&gt;</GetArchetypeDataResult>
+    </GetArchetypeDataResponse>
+  </soap:Body>
+</soap:Envelope>
+0
+
+

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap:Body>
+    <GetArchetypeDataResponse xmlns="http://tempuri.org//ServiceExecuteProcess">
+      <GetArchetypeDataResult>&lt;Data&gt;
+        &lt;NxNtfServer&gt;
+        &lt;ServerName&gt;DFIN91TEWA02&lt;/ServerName&gt;
+        &lt;/NxNtfServer&gt;
+        &lt;NxNtfServer&gt;
+        &lt;ServerName&gt;DFIN91TEWA01&lt;/ServerName&gt;
+        &lt;/NxNtfServer&gt;
+        &lt;/Data&gt;</GetArchetypeDataResult>
+    </GetArchetypeDataResponse>
+  </soap:Body>
+</soap:Envelope>
