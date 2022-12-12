@@ -5,7 +5,7 @@ This utility aims to make publishing in 3E a little easier by automating the sto
 
 You can specify the WAPIs manually on the command line, or the utility can try and determine them for itself by checking the NxNtfServer table. This will require that the person running the utility has an account in the 3E environment being targetted.
 
-The code is compatible with .net framwork and .net 6.
+The code is compatible with .net framework 4.8 and .net 6.
 
 The executable for .net framework can be built and will run standalone (without any other accompanying files) as long as the appropriate version of the framework is installed.
 For .net 6, the visual studio packager can be run to produce a similar standalone executable, however it will be very much larger in size.
