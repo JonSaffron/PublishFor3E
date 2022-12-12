@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 
 // https://www.codeproject.com/Tips/1063552/IIS-Application-Pool-Operations-via-Csharp
@@ -23,53 +20,34 @@ namespace PublishFor3E
                 Console.WriteLine();
                 if (args.Length == 0)
                     {
-                    Console.WriteLine($"Usage: {Assembly.GetExecutingAssembly().GetName().Name} <environment> [wapi,wapi...]");
-                    Console.WriteLine($"Where <environment> is a url like http://my3eserver/TE_3E_{DateTime.Today.DayOfWeek}/");
+                    string exampleEnvName = DateTime.Today.DayOfWeek.ToString().ToUpperInvariant();
+                    Console.WriteLine($"Usage: {Assembly.GetExecutingAssembly().GetName().Name} <environment-url> [wapi,wapi...]");
+                    Console.WriteLine($"Where <environment-url> is a url like http://my3eserver/TE_3E_{exampleEnvName}/");
                     Console.WriteLine("and [wapi,wapi...] is an optional list of wapi servers to recycle.");
                     Console.WriteLine("If no list of wapis is provided, an attempt will be made to automatically determine which they are.");
+                    Console.WriteLine("The usage details will be saved to an xml file to allow a shortcut form of the command to be used:");
+                    Console.WriteLine($"Shortcut: {Assembly.GetExecutingAssembly().GetName().Name} <environment>");
+                    Console.WriteLine($"Where <environment> is TE_3E_{exampleEnvName}");
                     return 0;
                     }
 
+                PublishParameters publishParameters;
                 var argsQueue = new Queue<string>(args);
-                Uri enteredUrl;
-                string environment;
-                try
+                var firstArgument = argsQueue.Peek();
+                if (!firstArgument.Contains("/") && argsQueue.Count == 1)
                     {
-                    enteredUrl = new Uri(argsQueue.Dequeue(), UriKind.Absolute);
-                    if (enteredUrl.Segments.Length < 2)
-                        throw new InvalidOperationException("URL is too short");
-                    environment = enteredUrl.AbsolutePath.Split('/')[1];
-                    if (!environment.StartsWith("TE_3E_", StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException("URL doesn't look like a 3e environment as the path doesn't start TE_3E_");
+                    if (!TryParseForShortCutForm(firstArgument, out publishParameters!))
+                        return 1;
                     }
-                catch (Exception ex)
+                else
                     {
-                    Console.WriteLine("Invalid URL to an environment specified: " + ex.Message);
-                    return 1;
-                    }
-                
-                Console.WriteLine($"Publishing on environment {environment}");
-                var baseUrl = new Uri(enteredUrl, $"/{environment}/");
-
-                List<string> wapis;
-                switch (argsQueue.Count)
-                    {
-                    case 0:
-                        Console.WriteLine($"Discovering WAPI servers for {environment}:");
-                        wapis = GetPossibleWapis(baseUrl).ToList();
-                        break;
-                    case 1: 
-                        wapis = ExtractWapiList(argsQueue.Dequeue()).ToList();
-                        Console.WriteLine($"WAPI servers specified: {string.Join(", ", wapis)}");
-                        break;
-                    default:
-                        wapis = argsQueue.ToList();
-                        Console.WriteLine($"WAPI servers specified: {string.Join(", ", wapis)}");
-                        break;
+                    if (!TryParseForFullForm(argsQueue, out publishParameters!))
+                        return 1;
+                    SavePublishParameters(publishParameters);
                     }
 
                 Console.WriteLine();
-                var publisher = new Publisher(baseUrl, wapis);
+                var publisher = new Publisher(publishParameters);
                 bool publishSucceeded = publisher.TryPublish();
                 Console.WriteLine();
                 Console.WriteLine(publishSucceeded ? "Publish succeeded" : "Publish failed");
@@ -83,121 +61,46 @@ namespace PublishFor3E
                 }
             }
 
-        private static IEnumerable<string> GetPossibleWapis(Uri baseUri)
+        internal static bool TryParseForFullForm(Queue<string> argsQueue, out PublishParameters? publishParameters)
             {
-            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var serviceInfo = GetServiceInfo(baseUri);
-            result.Add(serviceInfo.Server);
-
-            var environment = baseUri.AbsolutePath.Split('/')[1];
-
-            result.UnionWith(GetWapis(baseUri, serviceInfo.Version, environment));
-            return result;
-            }
-
-        private static ServiceInfo GetServiceInfo(Uri baseUri)
-            {
-            Console.Write("Getting ServiceInfo...");
-            try
+            if (!Target.TryParse(argsQueue.Dequeue(), out Target? target, out string? reason))
                 {
-                string response = CallDesignerService(baseUri, "ServiceInfo");
-                var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(response);
-                Debug.Assert(xmlDoc.DocumentElement != null);
-                var server = xmlDoc.DocumentElement!.GetAttribute("Server");
-                var version = Version.Parse(xmlDoc.DocumentElement.GetAttribute("Version"));
-                Console.WriteLine($"Server: {server}, Version: {version}");
-                return new ServiceInfo { Server = server, Version = version };
+                Console.WriteLine("Invalid URL to an environment specified: " + reason);
+                publishParameters = null;
+                return false;
                 }
-            catch (Exception ex)
+
+            Console.WriteLine($"Publishing on environment {target!.Environment}");
+
+            publishParameters = new PublishParameters(target);
+                
+            switch (argsQueue.Count)
                 {
-                Console.WriteLine("Failed: " + ex.Message);
-                throw new InvalidOperationException("Cannot continue - WAPI servers cannot be determined.");
+                case 0:
+                    Console.WriteLine($"Discovering WAPI servers for {target.Environment}:");
+                    var wapiDiscovery = new WapiDiscovery(target);
+                    publishParameters.AddWapis(wapiDiscovery.GetPossibleWapis());
+                    break;
+                case 1: 
+                    publishParameters.AddWapis(ExtractWapiList(argsQueue.Dequeue()));
+                    Console.WriteLine($"WAPI servers specified: {string.Join(", ", publishParameters.Wapis)}");
+                    break;
+                default:
+                    publishParameters.AddWapis(argsQueue);
+                    Console.WriteLine($"WAPI servers specified: {string.Join(", ", publishParameters.Wapis)}");
+                    break;
                 }
+
+            return true;
             }
 
-        private static string CallDesignerService(Uri baseUri, string serviceName)
+        internal static bool TryParseForShortCutForm(string criteria, out PublishParameters? publishParameters)
             {
-            var credentialCache = new CredentialCache
-                {
-                    { baseUri, "Negotiate", CredentialCache.DefaultNetworkCredentials }
-                };
-
-            var handler = new HttpClientHandler { Credentials = credentialCache, PreAuthenticate = true };
-            var httpClient = new HttpClient(handler);
-            httpClient.BaseAddress = new Uri(baseUri, "services/DesignerService.asmx/");
-
-            var response = httpClient.GetAsync(serviceName).Result;
-            response.EnsureSuccessStatusCode();
-
-            var xml = new XmlDocument();
-            xml.LoadXml(response.Content.ReadAsStringAsync().Result);
-            var result = xml.DocumentElement!.InnerText;
-            return result;
+            publishParameters = LoadPublishParameters(criteria);
+            return publishParameters != null;
             }
 
-        private static IEnumerable<string> GetWapis(Uri baseUri, Version version, string environment)
-            {
-            Console.Write("Getting notification server list...");
-            // ReSharper disable once StringLiteralTypo
-            string uri = (version.Major == 2 ? "web/ui" :  "web") + "/TransactionService.asmx";
-            var credentialCache = new CredentialCache
-                {
-                    { baseUri, "Negotiate", CredentialCache.DefaultNetworkCredentials }
-                };
-
-            var handler = new HttpClientHandler { Credentials = credentialCache, PreAuthenticate = true };
-            using (var request = new HttpClient(handler))
-                {
-                request.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/xml"));
-                request.DefaultRequestHeaders.Add("SOAPAction", "\"http://tempuri.org//ServiceExecuteProcess/GetArchetypeData\"");
-                request.BaseAddress = baseUri;
-                var content = new StringContent(GetServersXml(environment), Encoding.UTF8, "text/xml");
-                try
-                    {
-                    var response = request.PostAsync(uri, content).Result;
-                    response.EnsureSuccessStatusCode();
-
-                    var result = ExtractServerNames(response.Content.ReadAsStringAsync().Result);
-                    Console.WriteLine(result.Any() ? string.Join(",", result) : "no likely servers found");
-                    return result;
-                    }
-                catch (Exception ex)
-                    {
-                    Console.WriteLine("Failed: " + ex.Message);
-                    return new string[] { };
-                    }
-                }
-            }
-
-        private static string[] ExtractServerNames(string soapResponse)
-            {
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(soapResponse);
-            var xnm = new XmlNamespaceManager(xmlDoc.NameTable);
-            xnm.AddNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/");
-            xnm.AddNamespace("r", "http://tempuri.org//ServiceExecuteProcess");
-
-            var dataElement = (XmlElement?) xmlDoc.SelectSingleNode("soap:Envelope/soap:Body/r:GetArchetypeDataResponse/r:GetArchetypeDataResult", xnm);
-            if (dataElement == null)
-                return new string[] { };
-            xmlDoc.LoadXml(dataElement.InnerText);
-            var serverElements = xmlDoc.SelectNodes("Data/NxNtfServer/ServerName");
-            Debug.Assert(serverElements != null);
-            return serverElements.Cast<XmlElement>().Select(element => element.InnerText).ToArray();
-            }
-
-        private static string GetServersXml(string environment)
-            {
-            var xoql = Resources.GetServers.Replace("%%Environment%%", environment);
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xoql);
-            Debug.Assert(xmlDoc.DocumentElement != null, "xmlDoc.DocumentElement != null");
-            var result = xmlDoc.DocumentElement!.OuterXml;
-            return result;
-            }
-
-        private static IEnumerable<string> ExtractWapiList(string wapiList)
+        internal static IEnumerable<string> ExtractWapiList(string wapiList)
             {
             var separatorPosition = wapiList.IndexOfAny("|,;".ToCharArray());
             if (separatorPosition == -1)
@@ -215,10 +118,128 @@ namespace PublishFor3E
                 }
             }
 
-        private struct ServiceInfo
+        internal static void SavePublishParameters(PublishParameters publishParameters)
             {
-            public string Server;
-            public Version Version;
+            string path = SettingsFile();
+            XmlDocument xmlDoc;
+            XmlElement? environments;
+            if (File.Exists(path))
+                {
+                xmlDoc = new XmlDocument();
+                try
+                    {
+                    xmlDoc.Load(path);
+                    }
+                catch (Exception ex)
+                    {
+                    Console.WriteLine($"Could not load settings file {path}: {ex.Message}");
+                    return;
+                    }
+
+                environments = xmlDoc.SelectSingleNode("Environments") as XmlElement;
+                if (environments == null)
+                    {
+                    Console.WriteLine("XML settings file contains invalid content and cannot be read or updated.");
+                    return;
+                    }
+                }
+            else
+                {
+                xmlDoc = new XmlDocument();
+                environments = xmlDoc.CreateElement("Environments");
+                xmlDoc.AppendChild(environments);
+                }
+
+            var environment = xmlDoc.SelectSingleNode($"Environments/{publishParameters.Target.Environment}")
+                             ?? environments.AppendChild(xmlDoc.CreateElement(publishParameters.Target.Environment));
+
+            XmlElement baseUri = (XmlElement) (environment.SelectSingleNode("BaseUri") ?? environment.AppendChild(xmlDoc.CreateElement("BaseUri")));
+            baseUri.InnerText = publishParameters.Target.BaseUri.ToString();
+
+            XmlElement wapis = (XmlElement)(environment.SelectSingleNode("Wapis") ?? environment.AppendChild(xmlDoc.CreateElement("Wapis")));
+            wapis.InnerText = string.Join(" ", publishParameters.Wapis);
+
+            xmlDoc.Save(path);
+            }
+
+        internal static PublishParameters? LoadPublishParameters(string criteria)
+            {
+            string path = SettingsFile();
+            if (!File.Exists(path))
+                {
+                Console.WriteLine($"Could not load settings file {path}: File does not exist");
+                return null;
+                }
+
+            XmlDocument xmlDoc = new XmlDocument();
+            try
+                {
+                xmlDoc.Load(path);
+                }
+            catch (Exception ex)
+                {
+                Console.WriteLine($"Could not load settings file {path}: {ex.Message}");
+                return null;
+                }
+
+            XmlElement? environments = xmlDoc.SelectSingleNode("Environments") as XmlElement;
+            if (environments == null)
+                {
+                Console.WriteLine("XML settings file contains invalid content and cannot be read or updated.");
+                return null;
+                }
+
+            var environmentList = new List<string>();
+            foreach (XmlElement element in environments.ChildNodes)
+                {
+                environmentList.Add(element.Name);
+                }
+
+            var matches = criteria.StartsWith("TE_3E_", StringComparison.OrdinalIgnoreCase) 
+                ? environmentList.Where(item => item.StartsWith(criteria, StringComparison.OrdinalIgnoreCase)).ToList()
+                : environmentList.Where(item => item.IndexOf(criteria, StringComparison.OrdinalIgnoreCase) != -1).ToList();
+
+            if (matches.Count == 0)
+                {
+                Console.WriteLine("Could not find any matches.");
+                return null;
+                }
+
+            if (matches.Count > 1)
+                {
+                Console.WriteLine($"Match found to multiple environments: {string.Join(", ", matches)}");
+                return null;
+                }
+
+            XmlElement? environment = environments.SelectSingleNode(matches[0]) as XmlElement;
+            Debug.Assert(environment != null);
+
+            var baseUri = environment!.SelectSingleNode("BaseUri")?.InnerText;
+            var wapis = environment!.SelectSingleNode("Wapis")?.InnerText;
+            if (baseUri == null || wapis == null)
+                {
+                Console.WriteLine($"Saved settings for environment {matches[0]} are incorrect.");
+                return null;
+                }
+
+            if (!Target.TryParse(baseUri, out Target? target, out string? reason))
+                {
+                Console.WriteLine($"Saved URL for environment {matches[0]} is invalid: {reason}");
+                }
+
+            var result = new PublishParameters(target!);
+            result.AddWapis(wapis.Split(' '));
+            return result;
+            }
+
+        internal static string SettingsFile()
+            {
+            string fullPath = Assembly.GetExecutingAssembly().Location;
+            string directory = Path.GetDirectoryName(fullPath)!;
+            var fileWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
+            var newFileName = Path.ChangeExtension(fileWithoutExtension + "Settings", "xml");
+            var result = Path.Combine(directory, newFileName);
+            return result;
             }
         }
     }

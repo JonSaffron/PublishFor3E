@@ -71,7 +71,7 @@ return selectQ
 
 
 
-POST https://dfin91tewa01.dentons.global/te_3e_gd_dev/web/transactionservice.asmx HTTP/1.1
+POST https://dfin91tewa01/te_3e_gd_dev/web/transactionservice.asmx HTTP/1.1
 User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; MS Web Services Client Protocol 4.0.30319.42000)
 Content-Type: text/xml; charset=utf-8
 SOAPAction: "http://tempuri.org//ServiceExecuteProcess/GetArchetypeData"
@@ -79,7 +79,7 @@ Authorization: Negotiate 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
-Host: dfin91tewa01.dentons.global
+Host: dfin91tewa01
 Content-Length: 2520
 Expect: 100-continue
 
@@ -161,7 +161,6 @@ P3P: CP="CURa ADMa DEVa CONo HISa OUR IND DSP ALL COR"
 WWW-Authenticate: Negotiate oYG3MIG0oAMKAQChCwYJKoZIgvcSAQICooGfBIGcYIGZBgkqhkiG9xIBAgICAG+BiTCBhqADAgEFoQMCAQ+iejB4oAMCARKicQRvPR9W7R+dMncTsNqNhDmduuSSg3ZKN+ljbi+RMfnr1q2MUr/k0F2uRRQSWMulPHV1kWBhMA+5FDV6jW6SIwo5sFpMwCz5Ao8qnuw8Sa4NMKVBzFQhUFLBa29cZNYDmDLfSWbwJcYfYuRZBHXYLAkC
 Date: Mon, 05 Dec 2022 21:49:34 GMT
 
-293
 <?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <soap:Body>
@@ -177,6 +176,6 @@ Date: Mon, 05 Dec 2022 21:49:34 GMT
     </GetArchetypeDataResponse>
   </soap:Body>
 </soap:Envelope>
-0
+
 
 

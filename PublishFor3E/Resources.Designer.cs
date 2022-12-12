@@ -39,7 +39,7 @@ namespace PublishFor3E {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Publish.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PublishFor3E.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,24 +57,6 @@ namespace PublishFor3E {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-        ///&lt;soap:Envelope xmlns:soap=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; xmlns:s=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
-        ///  &lt;soap:Body&gt;
-        ///    &lt;GetArchetypeDataResponse xmlns=&quot;http://tempuri.org//ServiceExecuteProcess&quot;&gt;
-        ///      &lt;GetArchetypeDataResult&gt;&amp;lt;Data&amp;gt;
-        ///        &amp;lt;NxNtfServer&amp;gt;
-        ///        &amp;lt;ServerName&amp;gt;DFIN91TEWA02&amp;lt;/ServerName&amp;gt;
-        ///        &amp;lt;/NxNtfServer&amp;gt;
-        ///        &amp;lt;NxNtfServer&amp;gt;
-        ///        &amp;lt;Ser [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string ExampleResponse {
-            get {
-                return ResourceManager.GetString("ExampleResponse", resourceCulture);
             }
         }
         

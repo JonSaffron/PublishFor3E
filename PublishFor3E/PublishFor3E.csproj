@@ -7,7 +7,7 @@
     <Version>1.0.0</Version>
     <Description>A command line utility to perform a publish on a 3E environment</Description>
     <Copyright>Copyright © J Saffron Consulting Ltd 2022</Copyright>
-    <RepositoryUrl>https://github.com/JonSaffron/PublishFor3e</RepositoryUrl>
+    <RepositoryUrl>https://github.com/JonSaffron/PublishFor3E</RepositoryUrl>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
@@ -18,10 +18,34 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Publish</AssemblyName>
+    <Company>J Saffron Consulting Lrd</Company>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Management" Version="7.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>TestPublishFor3E</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

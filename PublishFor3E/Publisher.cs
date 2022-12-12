@@ -11,28 +11,18 @@ namespace PublishFor3E
     {
     internal class Publisher
         {
-        private readonly Uri _baseUri;
-        private readonly HashSet<string> _wapis;
-        private readonly string _environment;
+        private readonly PublishParameters _publishParameters;
         private readonly HttpClient _httpClient;
 
-        public Publisher(Uri baseUri, IEnumerable<string> wapis)
+        public Publisher(PublishParameters publishParameters)
             {
-            _baseUri = baseUri ?? throw new ArgumentNullException(nameof(baseUri));
-            if (baseUri.Segments.Length < 2)
-                throw new ArgumentOutOfRangeException(nameof(baseUri), "Invalid environment URL");
-
-            _wapis = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            this._wapis.UnionWith(wapis);
-            this._environment = baseUri.AbsolutePath.Split('/')[1];
-            if (!this._environment.StartsWith("TE_3E_"))
-                throw new ArgumentOutOfRangeException(nameof(baseUri), "Invalid environment URL");
+            this._publishParameters = publishParameters ?? throw new ArgumentNullException(nameof(publishParameters));
             this._httpClient = BuildHttpClient();
             }
 
         public bool TryPublish()
             {
-            Console.WriteLine($"Checking WAPI servers on {this._environment}");
+            Console.WriteLine($"Checking WAPI servers on {this._publishParameters.Target.Environment}");
             var wapisAndPools = GetRunningAppPools().ToList();
             SwitchOffRunningWapis(wapisAndPools);
             StartPublish();
@@ -44,7 +34,7 @@ namespace PublishFor3E
 
         private IEnumerable<WapiPool> GetRunningAppPools()
             {
-            foreach (var wapi in this._wapis)
+            foreach (var wapi in this._publishParameters.Wapis)
                 {
                 string? appPool = GetPoolForWapi(wapi);
                 if (appPool != null)
@@ -60,30 +50,16 @@ namespace PublishFor3E
 
         private string? GetPoolForWapi(string wapi)
             {
-            // Connection options for WMI object
-            ConnectionOptions options = new ConnectionOptions
-                {
-                // Packet Privacy means authentication with encrypted connection.
-                Authentication = AuthenticationLevel.PacketPrivacy,
-
-                // EnablePrivileges : Value indicating whether user privileges 
-                // need to be enabled for the connection operation. 
-                // This property should only be used when the operation performed 
-                // requires a certain user privilege to be enabled.
-                EnablePrivileges = true
-                };
-
-            // Connect to IIS WMI namespace \\root\\MicrosoftIISv2
-            ManagementScope scope = new ManagementScope($@"\\{wapi}\root\MicrosoftIISv2", options);
+            ManagementScope scope = GetManagementScope(wapi);
 
             // Query IIS WMI property 
-            ObjectQuery objectQuery = new ObjectQuery("SELECT * FROM IIsWebVirtualDirSetting");
+            string applicationName = $"W3SVC/1/ROOT/{this._publishParameters.Target.Environment}/Web";
+            ObjectQuery objectQuery = new ObjectQuery($"SELECT * FROM IIsWebVirtualDirSetting WHERE Name = \"{applicationName}\"");
 
             // Search and collect details thru WMI methods
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, objectQuery);
             ManagementObjectCollection virtualDirectorySettings = searcher.Get();
 
-            string applicationName = $"W3SVC/1/ROOT/{this._environment}/Web";
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
             foreach (ManagementObject virtualDirectorySetting in virtualDirectorySettings)
                 {
@@ -99,23 +75,9 @@ namespace PublishFor3E
             return null;
             }
 
-        private static AppPoolState GetAppPoolState(WapiPool wapiPool)
+        private AppPoolState GetAppPoolState(WapiPool wapiPool)
             {
-            // Connection options for WMI object
-            ConnectionOptions options = new ConnectionOptions
-                {
-                // Packet Privacy means authentication with encrypted connection.
-                Authentication = AuthenticationLevel.PacketPrivacy,
-
-                // EnablePrivileges : Value indicating whether user privileges 
-                // need to be enabled for the connection operation. 
-                // This property should only be used when the operation performed 
-                // requires a certain user privilege to be enabled.
-                EnablePrivileges = true
-                };
-
-            // Connect to IIS WMI namespace \\root\\MicrosoftIISv2
-            ManagementScope scope = new ManagementScope($@"\\{wapiPool.WapiServer}\root\MicrosoftIISv2", options);
+            ManagementScope scope = GetManagementScope(wapiPool.WapiServer);
 
             // Query IIS WMI property
             ObjectQuery objectQuery = new ObjectQuery("SELECT * FROM IISApplicationPoolSetting");
@@ -127,7 +89,7 @@ namespace PublishFor3E
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
             foreach (ManagementObject applicationPoolSetting in applicationPoolSettings)
                 {
-                // full name is of form /W3SVC/AppPools/DefaultAppPool
+                // full name is of form W3SVC/AppPools/DefaultAppPool
                 string? fullAppName = applicationPoolSetting["Name"] as string;
                 string? partialAppName = fullAppName?.Split('/')[2];
                 AppPoolState appPoolState = (AppPoolState) applicationPoolSetting["AppPoolState"];
@@ -140,7 +102,7 @@ namespace PublishFor3E
             return AppPoolState.Unknown;
             }
 
-        private static void SwitchOffRunningWapis(IEnumerable<WapiPool> wapisAndPools)
+        private void SwitchOffRunningWapis(IEnumerable<WapiPool> wapisAndPools)
             {
             foreach (var item in wapisAndPools)
                 {
@@ -157,7 +119,7 @@ namespace PublishFor3E
                 }
             }
 
-        private static void TurnAppPoolsBackOn(IEnumerable<WapiPool> wapisAndPools)
+        private void TurnAppPoolsBackOn(IEnumerable<WapiPool> wapisAndPools)
             {
             foreach (var item in wapisAndPools)
                 {
@@ -174,7 +136,7 @@ namespace PublishFor3E
                 }
             }
 
-        private static void SendControlRequestToAppPool(WapiPool wapiPool, string action)
+        private void SendControlRequestToAppPool(WapiPool wapiPool, string action)
             {
             if (action == null) throw new ArgumentNullException(nameof(action));
             if (!action.Equals("Start", StringComparison.OrdinalIgnoreCase) 
@@ -184,18 +146,14 @@ namespace PublishFor3E
                 throw new ArgumentOutOfRangeException(nameof(action), "Specify Start, Stop or Recycle");
                 }
 
-            ConnectionOptions options = new ConnectionOptions
-                {
-                Authentication = AuthenticationLevel.PacketPrivacy,
-                EnablePrivileges = true
-                };
-            ManagementScope scope = new ManagementScope($@"\\{wapiPool.WapiServer}\root\MicrosoftIISv2", options);
+            ManagementScope scope = GetManagementScope(wapiPool.WapiServer);
 
             // IIS WMI object IISApplicationPool to perform actions on IIS Application Pool
             ObjectQuery objectQuery = new ObjectQuery("SELECT * FROM IISApplicationPool");
 
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, objectQuery);
             ManagementObjectCollection applicationPools = searcher.Get();
+
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
             foreach (ManagementObject applicationPool in applicationPools)
                 {
@@ -208,16 +166,40 @@ namespace PublishFor3E
                 }
             }
 
+        private ManagementScope GetManagementScope(string wapiServer)
+            {
+            ConnectionOptions options = new ConnectionOptions
+                {
+                // Packet Privacy means authentication with encrypted connection.
+                Authentication = AuthenticationLevel.PacketPrivacy,
+
+                // EnablePrivileges : Value indicating whether user privileges 
+                // need to be enabled for the connection operation. 
+                // This property should only be used when the operation performed 
+                // requires a certain user privilege to be enabled.
+                EnablePrivileges = true
+                };
+            if (this._publishParameters.WmiCredentials != null)
+                {
+                // https://web.archive.org/web/20150213044821/http://www.manageengine.com/network-monitoring/help/troubleshoot_opmanager/troubleshoot_wmi.html
+                options.Username = $"{this._publishParameters.WmiCredentials.Domain}\\{this._publishParameters.WmiCredentials.UserName}";
+                options.Password = this._publishParameters.WmiCredentials.Password;
+                }
+
+            ManagementScope scope = new ManagementScope($@"\\{wapiServer}\root\MicrosoftIISv2", options);
+            return scope;
+            }
+
         private HttpClient BuildHttpClient()
             {
             var credentialCache = new CredentialCache
                 {
-                    { this._baseUri, "Negotiate", CredentialCache.DefaultNetworkCredentials }
+                    { this._publishParameters.Target.BaseUri, "Negotiate", CredentialCache.DefaultNetworkCredentials }
                 };
 
             var handler = new HttpClientHandler { Credentials = credentialCache, PreAuthenticate = true };
             var result = new HttpClient(handler);
-            result.BaseAddress = new Uri(this._baseUri, "services/DesignerService.asmx/");
+            result.BaseAddress = new Uri(this._publishParameters.Target.BaseUri, "services/DesignerService.asmx/");
             return result;
             }
 
@@ -293,7 +275,6 @@ namespace PublishFor3E
             public string AppPool;
             }
 
-        
         private enum AppPoolState
             {
             Unknown = 0,
