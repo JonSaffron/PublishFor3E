@@ -4,7 +4,7 @@
     <PackageId>Publisher</PackageId>
     <Authors>Jon Saffron</Authors>
     <Product>Publisher</Product>
-    <Version>1.0.0</Version>
+    <Version>1.1.1</Version>
     <Description>A command line utility to perform a publish on a 3E environment</Description>
     <Copyright>Copyright © J Saffron Consulting Ltd 2022</Copyright>
     <RepositoryUrl>https://github.com/JonSaffron/PublishFor3E</RepositoryUrl>
@@ -18,9 +18,9 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Publish</AssemblyName>
-    <Company>J Saffron Consulting Lrd</Company>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <Company>J Saffron Consulting Ltd</Company>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

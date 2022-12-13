@@ -9,7 +9,7 @@ namespace TestPublishFor3E
         [Test]
         public void CannotSpecifyInvalidUrl()
             {
-            Assert.IsFalse(Target.TryParse(null, out _, out _));
+            Assert.IsFalse(Target.TryParse(null!, out _, out _));
             Assert.IsFalse(Target.TryParse(string.Empty, out _, out _));
             Assert.IsFalse(Target.TryParse("    ", out _, out _));
 
@@ -33,7 +33,7 @@ namespace TestPublishFor3E
         public void CanSpecifyValidUrl1()
             {
             Assert.IsTrue(Target.TryParse("http://wapi1/TE_3E_ENV/", out Target t, out string reason));
-            Assert.AreEqual("http://wapi1/TE_3E_ENV/", t.BaseUri.ToString());
+            Assert.AreEqual("http://wapi1/TE_3E_ENV/", t!.BaseUri.ToString());
             Assert.AreEqual("TE_3E_ENV", t.Environment);
             Assert.IsNull(reason);
             }
@@ -42,7 +42,7 @@ namespace TestPublishFor3E
         public void CanSpecifyValidUrl2()
             {
             Assert.IsTrue(Target.TryParse("https://wapi.company.com/te_3e_staging_server/web/dashboard/NxPageHome", out Target t, out string reason));
-            Assert.AreEqual("https://wapi.company.com/TE_3E_STAGING_SERVER/", t.BaseUri.ToString());
+            Assert.AreEqual("https://wapi.company.com/TE_3E_STAGING_SERVER/", t!.BaseUri.ToString());
             Assert.AreEqual("TE_3E_STAGING_SERVER", t.Environment);
             Assert.IsNull(reason);
             }
@@ -50,12 +50,12 @@ namespace TestPublishFor3E
         [Test]
         public void CanCompare()
             {
-            Target.TryParse("https://wapi.company.com/TE_3E_STAGING_SERVER", out Target? t1, out _);
-            Target.TryParse("https://wapi.company.com/TE_3E_STAGING_SERVER", out Target? t2, out _);
-            Target.TryParse("https://wapi.company.com/te_3e_staging_server", out Target? t3, out _);
-            Target.TryParse("http://wapi.company.com/TE_3E_STAGING_SERVER", out Target? t4, out _);
+            Target.TryParse("https://wapi.company.com/TE_3E_STAGING_SERVER", out Target t1, out _);
+            Target.TryParse("https://wapi.company.com/TE_3E_STAGING_SERVER", out Target t2, out _);
+            Target.TryParse("https://wapi.company.com/te_3e_staging_server", out Target t3, out _);
+            Target.TryParse("http://wapi.company.com/TE_3E_STAGING_SERVER", out Target t4, out _);
 
-            Assert.IsTrue(t1.Equals(t2));
+            Assert.IsTrue(t1!.Equals(t2));
             Assert.IsTrue(t1.Equals(t3));
             Assert.IsFalse(t1.Equals(t4));
 

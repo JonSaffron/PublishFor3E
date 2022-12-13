@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Xml;
 
 // https://www.codeproject.com/Tips/1063552/IIS-Application-Pool-Operations-via-Csharp
 
@@ -43,7 +39,7 @@ namespace PublishFor3E
                     {
                     if (!TryParseForFullForm(argsQueue, out publishParameters!))
                         return 1;
-                    SavePublishParameters(publishParameters);
+                    StoredSettings.SavePublishParameters(publishParameters);
                     }
 
                 Console.WriteLine();
@@ -96,7 +92,7 @@ namespace PublishFor3E
 
         internal static bool TryParseForShortCutForm(string criteria, out PublishParameters? publishParameters)
             {
-            publishParameters = LoadPublishParameters(criteria);
+            publishParameters = StoredSettings.LoadPublishParameters(criteria);
             return publishParameters != null;
             }
 
@@ -116,130 +112,6 @@ namespace PublishFor3E
                 {
                 yield return item;
                 }
-            }
-
-        internal static void SavePublishParameters(PublishParameters publishParameters)
-            {
-            string path = SettingsFile();
-            XmlDocument xmlDoc;
-            XmlElement? environments;
-            if (File.Exists(path))
-                {
-                xmlDoc = new XmlDocument();
-                try
-                    {
-                    xmlDoc.Load(path);
-                    }
-                catch (Exception ex)
-                    {
-                    Console.WriteLine($"Could not load settings file {path}: {ex.Message}");
-                    return;
-                    }
-
-                environments = xmlDoc.SelectSingleNode("Environments") as XmlElement;
-                if (environments == null)
-                    {
-                    Console.WriteLine("XML settings file contains invalid content and cannot be read or updated.");
-                    return;
-                    }
-                }
-            else
-                {
-                xmlDoc = new XmlDocument();
-                environments = xmlDoc.CreateElement("Environments");
-                xmlDoc.AppendChild(environments);
-                }
-
-            var environment = xmlDoc.SelectSingleNode($"Environments/{publishParameters.Target.Environment}")
-                             ?? environments.AppendChild(xmlDoc.CreateElement(publishParameters.Target.Environment));
-
-            XmlElement baseUri = (XmlElement) (environment.SelectSingleNode("BaseUri") ?? environment.AppendChild(xmlDoc.CreateElement("BaseUri")));
-            baseUri.InnerText = publishParameters.Target.BaseUri.ToString();
-
-            XmlElement wapis = (XmlElement)(environment.SelectSingleNode("Wapis") ?? environment.AppendChild(xmlDoc.CreateElement("Wapis")));
-            wapis.InnerText = string.Join(" ", publishParameters.Wapis);
-
-            xmlDoc.Save(path);
-            }
-
-        internal static PublishParameters? LoadPublishParameters(string criteria)
-            {
-            string path = SettingsFile();
-            if (!File.Exists(path))
-                {
-                Console.WriteLine($"Could not load settings file {path}: File does not exist");
-                return null;
-                }
-
-            XmlDocument xmlDoc = new XmlDocument();
-            try
-                {
-                xmlDoc.Load(path);
-                }
-            catch (Exception ex)
-                {
-                Console.WriteLine($"Could not load settings file {path}: {ex.Message}");
-                return null;
-                }
-
-            XmlElement? environments = xmlDoc.SelectSingleNode("Environments") as XmlElement;
-            if (environments == null)
-                {
-                Console.WriteLine("XML settings file contains invalid content and cannot be read or updated.");
-                return null;
-                }
-
-            var environmentList = new List<string>();
-            foreach (XmlElement element in environments.ChildNodes)
-                {
-                environmentList.Add(element.Name);
-                }
-
-            var matches = criteria.StartsWith("TE_3E_", StringComparison.OrdinalIgnoreCase) 
-                ? environmentList.Where(item => item.StartsWith(criteria, StringComparison.OrdinalIgnoreCase)).ToList()
-                : environmentList.Where(item => item.IndexOf(criteria, StringComparison.OrdinalIgnoreCase) != -1).ToList();
-
-            if (matches.Count == 0)
-                {
-                Console.WriteLine("Could not find any matches.");
-                return null;
-                }
-
-            if (matches.Count > 1)
-                {
-                Console.WriteLine($"Match found to multiple environments: {string.Join(", ", matches)}");
-                return null;
-                }
-
-            XmlElement? environment = environments.SelectSingleNode(matches[0]) as XmlElement;
-            Debug.Assert(environment != null);
-
-            var baseUri = environment!.SelectSingleNode("BaseUri")?.InnerText;
-            var wapis = environment!.SelectSingleNode("Wapis")?.InnerText;
-            if (baseUri == null || wapis == null)
-                {
-                Console.WriteLine($"Saved settings for environment {matches[0]} are incorrect.");
-                return null;
-                }
-
-            if (!Target.TryParse(baseUri, out Target? target, out string? reason))
-                {
-                Console.WriteLine($"Saved URL for environment {matches[0]} is invalid: {reason}");
-                }
-
-            var result = new PublishParameters(target!);
-            result.AddWapis(wapis.Split(' '));
-            return result;
-            }
-
-        internal static string SettingsFile()
-            {
-            string fullPath = Assembly.GetExecutingAssembly().Location;
-            string directory = Path.GetDirectoryName(fullPath)!;
-            var fileWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
-            var newFileName = Path.ChangeExtension(fileWithoutExtension + "Settings", "xml");
-            var result = Path.Combine(directory, newFileName);
-            return result;
             }
         }
     }

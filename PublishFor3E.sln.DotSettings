@@ -1,4 +1,5 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/GeneratedFilesAndFolders/=CC3E9A50_002D6DEB_002D4529_002D814C_002D22923D708F8F_002Ff_003AResources_002Eresx/@EntryIndexedValue">CC3E9A50-6DEB-4529-814C-22923D708F8F/f:Resources.resx</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=wapi/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=wapis/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=xoql/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -7,6 +7,16 @@ namespace PublishFor3E
         public readonly Uri BaseUri;
         public readonly string Environment;
 
+        public static Target Parse(string url)
+            {
+            if (!TryParse(url, out Target? result, out string? reason))
+                {
+                throw new FormatException(reason);
+                }
+
+            return result!;
+            }
+
         public static bool TryParse(string url, out Target? result, out string? reason)
             {
             result = null;
