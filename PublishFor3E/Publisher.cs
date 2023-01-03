@@ -216,10 +216,22 @@ namespace PublishFor3E
                 string newInfo = ExtractNewInfo(status, out state);
                 if (newInfo != lastResponse)
                     {
-                    Console.WriteLine(newInfo);
+                    if (Console.IsOutputRedirected)
+                        {
+                        Console.WriteLine(newInfo);
+                        }
+                    else
+                        {
+                        Console.Write($"\r{newInfo}");
+                        }
                     }
                 lastResponse = newInfo;
                 } while (state == State.Ongoing);
+
+            if (!Console.IsOutputRedirected)
+                {
+                Console.WriteLine();
+                }
 
             return state;
             }

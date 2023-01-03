@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--This file contains the saved settings used previously to publish to 3E environments by Publish.exe-->
+<Environments>
+  <TE_3E_DEV_EU_REPORT>
+    <BaseUri>https://rdfin91tewa01/TE_3E_DEV_EU_REPORT/</BaseUri>
+    <Wapis>RDFIN91TEWA01</Wapis>
+  </TE_3E_DEV_EU_REPORT>
+  <TE_3E_GD_REP_QA>
+    <BaseUri>https://rdfin91tewa01/TE_3E_GD_REP_QA/</BaseUri>
+    <Wapis>RDFIN91TEWA01</Wapis>
+  </TE_3E_GD_REP_QA>
+</Environments>

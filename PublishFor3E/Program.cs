@@ -18,7 +18,7 @@ namespace PublishFor3E
                 if (args.Length == 0)
                     {
                     string executableName = Assembly.GetExecutingAssembly().GetName().Name!;
-                    string exampleEnvName = DateTime.Today.DayOfWeek.ToString().ToUpperInvariant();
+                    string exampleEnvName = DateTime.Today.DayOfWeek.ToString("G").ToUpperInvariant();
                     Console.WriteLine($"Usage: {executableName} <environment-url> [wapi,wapi...]");
                     Console.WriteLine($"Where <environment-url> is a url like http://my3eserver/TE_3E_{exampleEnvName}/");
                     Console.WriteLine("and [wapi,wapi...] is an optional list of wapi servers to recycle.");
@@ -70,7 +70,7 @@ namespace PublishFor3E
             {
             if (!Target.TryParse(argsQueue.Dequeue(), out Target? target, out string? reason))
                 {
-                Console.WriteLine("Invalid URL to an environment specified: " + reason);
+                Console.WriteLine($"Invalid URL to an environment specified: {reason}");
                 publishParameters = null;
                 return false;
                 }
@@ -102,7 +102,13 @@ namespace PublishFor3E
         internal static bool TryParseForShortCutForm(string criteria, out PublishParameters? publishParameters)
             {
             publishParameters = StoredSettings.LoadPublishParameters(criteria);
-            return publishParameters != null;
+            bool isSuccessful = publishParameters != null;
+            if (isSuccessful)
+                {
+                Console.WriteLine($"Publishing on environment {publishParameters!.Target.Environment}");
+                }
+
+            return isSuccessful;
             }
 
         internal static IEnumerable<string> ExtractWapiList(string wapiList)

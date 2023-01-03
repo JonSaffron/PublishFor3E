@@ -18,16 +18,14 @@ For automatic discovery of WAPIs just specify a URL that identifies the environm
 > publish http://rdwap1/TE_3E_DEV/
 ~~~
 
-If you need to explicitly specify a list of WAPIS use:
+If you need to explicitly specify a list of WAPIs use:
 ~~~
 > publish http://rdwap1/TE_3E_DEV/ wapi1 wapi2 wapi3
 ~~~
 
-The settings you enter above will be saved in a PublishSettings.xml file so that future invocation can be simplified:
+After using one of the above commands, information about the environment that was published to will be saved to a PublishSettings.xml file so that future usage can be shortened to just the environment name, or a portion of it such as:
 ~~~
 > publish dev
 ~~~
-
-
 
 ![](PublishFor3E/Resources/Screenshot.png?raw=true)
