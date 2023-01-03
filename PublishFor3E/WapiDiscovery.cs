@@ -40,12 +40,12 @@ namespace PublishFor3E
                 Debug.Assert(xmlDoc.DocumentElement != null);
                 var server = xmlDoc.DocumentElement!.GetAttribute("Server");
                 var version = Version.Parse(xmlDoc.DocumentElement.GetAttribute("Version"));
-                Console.WriteLine($"Server: {server}, Version: {version}");
+                Console.WriteLine($" Server: {server}, Version: {version}");
                 return new ServiceInfo { Server = server, Version = version };
                 }
             catch (Exception ex)
                 {
-                Console.WriteLine("Failed: " + ex.Message);
+                Console.WriteLine(" Failed: " + ex.Message);
                 throw new InvalidOperationException("Cannot continue - WAPI servers cannot be determined.");
                 }
             }
@@ -74,7 +74,7 @@ namespace PublishFor3E
             {
             Console.Write("Getting notification server list...");
             // ReSharper disable once StringLiteralTypo
-            string uri = $"web{(version.Major == 2 ? "/ui" : string.Empty)}/TransactionService.asmx";
+            string uri = $"web{(version.Major < 3 ? "/ui" : string.Empty)}/TransactionService.asmx";
             var credentialCache = new CredentialCache
                 {
                     { this._target.BaseUri, "Negotiate", CredentialCache.DefaultNetworkCredentials }
@@ -92,13 +92,13 @@ namespace PublishFor3E
                 response.EnsureSuccessStatusCode();
 
                 var result = ExtractServerNames(response.Content.ReadAsStringAsync().Result);
-                Console.WriteLine(result.Any() ? string.Join(",", result) : "no likely servers found");
+                Console.WriteLine(result.Any() ? " " + string.Join(",", result) : " no likely servers found - the 3E scheduler may not be running");
                 return result;
                 }
             catch (Exception ex)
                 {
-                Console.WriteLine("Failed: " + ex.Message);
-                return new string[] { };
+                Console.WriteLine(" Failed: " + ex.Message);
+                return Array.Empty<string>();
                 }
             }
 
@@ -112,10 +112,11 @@ namespace PublishFor3E
 
             var dataElement = (XmlElement?) xmlDoc.SelectSingleNode("soap:Envelope/soap:Body/r:GetArchetypeDataResponse/r:GetArchetypeDataResult", xnm);
             if (dataElement == null)
-                return new string[] { };
+                {
+                return Array.Empty<string>();
+                }
             xmlDoc.LoadXml(dataElement.InnerText);
-            var serverElements = xmlDoc.SelectNodes("Data/NxNtfServer/ServerName");
-            Debug.Assert(serverElements != null);
+            var serverElements = xmlDoc.SelectNodes("Data/NxNtfServer/ServerName")!;
             return serverElements.Cast<XmlElement>().Select(element => element.InnerText).ToArray();
             }
 
@@ -124,7 +125,6 @@ namespace PublishFor3E
             var xoql = Resources.GetServers.Replace("%%Environment%%", $"/{environment}/%");
             var xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xoql);
-            Debug.Assert(xmlDoc.DocumentElement != null, "xmlDoc.DocumentElement != null");
             var result = xmlDoc.DocumentElement!.OuterXml;
             return result;
             }

@@ -110,7 +110,7 @@ namespace PublishFor3E
 
             if (matches.Count > 1)
                 {
-                Console.WriteLine($"Match found to multiple environments: {string.Join(", ", matches)}");
+                Console.WriteLine($"Matches found to multiple environments: {string.Join(", ", matches)}");
                 return null;
                 }
 
@@ -118,19 +118,21 @@ namespace PublishFor3E
 
             var baseUri = environment.SelectSingleNode("BaseUri")?.InnerText;
             var wapis = environment.SelectSingleNode("Wapis")?.InnerText;
-            if (baseUri == null || wapis == null)
+            if (string.IsNullOrWhiteSpace(baseUri) || string.IsNullOrWhiteSpace(wapis))
                 {
                 Console.WriteLine($"Saved settings for environment {matches[0]} are incorrect.");
                 return null;
                 }
 
-            if (!Target.TryParse(baseUri, out Target? target, out string? reason))
+            // ReSharper disable once RedundantSuppressNullableWarningExpression - baseUri is not null thanks to using IsNullOrWhiteSpace but compiler flags emits a warning without explicit suppression
+            if (!Target.TryParse(baseUri!, out Target? target, out string? reason))
                 {
                 Console.WriteLine($"Saved URL for environment {matches[0]} is invalid: {reason}");
                 }
 
             var result = new PublishParameters(target!);
-            result.AddWapis(wapis.Split(' '));
+            // ReSharper disable once RedundantSuppressNullableWarningExpression - wapis is not null thanks to using IsNullOrWhiteSpace but compiler flags emits a warning without explicit suppression
+            result.AddWapis(wapis!.Split(' '));
             return result;
             }
 

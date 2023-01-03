@@ -83,8 +83,10 @@ namespace PublishFor3E
 
         public override bool Equals(object? other)
             {
-            if (other == null) return false;
-            if (other.GetType() != this.GetType()) return false;
+            if (other == null) 
+                return false;
+            if (other.GetType() != this.GetType()) 
+                return false;
             return Equals((Target)other);
             }
 

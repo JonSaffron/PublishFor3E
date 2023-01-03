@@ -13,32 +13,41 @@ namespace PublishFor3E
             try
                 {
                 Console.WriteLine("Publish (and be damned) on a 3E environment");
+                Console.WriteLine("https://github.com/JonSaffron/PublishFor3E");
                 Console.WriteLine();
                 if (args.Length == 0)
                     {
+                    string executableName = Assembly.GetExecutingAssembly().GetName().Name!;
                     string exampleEnvName = DateTime.Today.DayOfWeek.ToString().ToUpperInvariant();
-                    Console.WriteLine($"Usage: {Assembly.GetExecutingAssembly().GetName().Name} <environment-url> [wapi,wapi...]");
+                    Console.WriteLine($"Usage: {executableName} <environment-url> [wapi,wapi...]");
                     Console.WriteLine($"Where <environment-url> is a url like http://my3eserver/TE_3E_{exampleEnvName}/");
                     Console.WriteLine("and [wapi,wapi...] is an optional list of wapi servers to recycle.");
                     Console.WriteLine("If no list of wapis is provided, an attempt will be made to automatically determine which they are.");
-                    Console.WriteLine("The usage details will be saved to an xml file to allow a shortcut form of the command to be used:");
-                    Console.WriteLine($"Shortcut: {Assembly.GetExecutingAssembly().GetName().Name} <environment>");
-                    Console.WriteLine($"Where <environment> is TE_3E_{exampleEnvName}");
+                    Console.WriteLine("If successful, the details will be saved to an xml file to enable a shortcut form of the command:");
+                    Console.WriteLine($"Shortcut: {executableName} <environment>");
+                    Console.WriteLine($"Where <environment> is TE_3E_{exampleEnvName} or simply even {exampleEnvName.ToLowerInvariant()}");
                     return 0;
                     }
 
                 PublishParameters publishParameters;
                 var argsQueue = new Queue<string>(args);
                 var firstArgument = argsQueue.Peek();
+#pragma warning disable CA1847
+                // string.Contains(char) not available in .net framework
                 if (!firstArgument.Contains("/") && argsQueue.Count == 1)
+#pragma warning restore CA1847
                     {
                     if (!TryParseForShortCutForm(firstArgument, out publishParameters!))
+                        {
                         return 1;
+                        }
                     }
                 else
                     {
                     if (!TryParseForFullForm(argsQueue, out publishParameters!))
+                        {
                         return 1;
+                        }
                     StoredSettings.SavePublishParameters(publishParameters);
                     }
 

@@ -1,9 +1,9 @@
 Publish For 3E
 ==============
 
-This utility aims to make publishing changes in 3E a little easier by automating the stopping and starting of the application pools that sometimes keep the application's DLLs locked. The account running the utliity will need the appropriate priviledges to connect to and control the WAPI servers. 
+This utility aims to make publishing changes in 3E a little easier by automating the stopping and starting of the application pools that sometimes keep the application's DLLs locked. The account running the utility will need the appropriate privileges to connect to and control the WAPI servers. 
 
-You can specify the WAPIs manually on the command line, or the utility can try and determine them for itself by checking the NxNtfServer table. This will require that the person running the utility has an account in the 3E environment being targetted.
+You can specify the WAPIs manually on the command line, or the utility can try and determine them for itself by checking the NxNtfServer table. This will require that the person running the utility has an account in the 3E environment being targeted.
 
 The code is compatible with .net framework 4.8 and .net 6.
 
@@ -18,7 +18,7 @@ For automatic discovery of WAPIs just specify a URL that identifies the environm
 > publish http://rdwap1/TE_3E_DEV/
 ~~~
 
-If you need to explictly specify a list of WAPIS use:
+If you need to explicitly specify a list of WAPIS use:
 ~~~
 > publish http://rdwap1/TE_3E_DEV/ wapi1 wapi2 wapi3
 ~~~

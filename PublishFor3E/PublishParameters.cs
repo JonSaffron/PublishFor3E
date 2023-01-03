@@ -41,15 +41,18 @@ namespace PublishFor3E
 
         public bool Equals(PublishParameters? other)
             {
-            if (other == null) return false;
+            if (other == null) 
+                return false;
             return this.Target.Equals(other.Target) && this._wapis.SetEquals(other.Wapis);
             }
 
         public override bool Equals(object? other)
             {
-            if (other == null) return false;
-            if (other.GetType() != this.GetType()) return false;
-            return Equals((Target)other);
+            if (other == null) 
+                return false;
+            if (other.GetType() != this.GetType()) 
+                return false;
+            return Equals((PublishParameters)other);
             }
 
         public override int GetHashCode()

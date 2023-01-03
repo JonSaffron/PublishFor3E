@@ -50,56 +50,46 @@ namespace PublishFor3E
 
         private string? GetPoolForWapi(string wapi)
             {
-            ManagementScope scope = GetManagementScope(wapi);
+            var managementScope = GetManagementScope(wapi);
 
-            // Query IIS WMI property 
-            string applicationName = $"W3SVC/1/ROOT/{this._publishParameters.Target.Environment}/Web";
-            ObjectQuery objectQuery = new ObjectQuery($"SELECT * FROM IIsWebVirtualDirSetting WHERE Name = \"{applicationName}\"");
+            string virtualDirectoryName = $"W3SVC/1/ROOT/{this._publishParameters.Target.Environment}/Web";
+            var objectQuery = new ObjectQuery($"SELECT * FROM IIsWebVirtualDirSetting WHERE Name = \"{virtualDirectoryName}\"");
 
-            // Search and collect details thru WMI methods
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, objectQuery);
-            ManagementObjectCollection virtualDirectorySettings = searcher.Get();
+            var managementObjectSearcher = new ManagementObjectSearcher(managementScope, objectQuery);
+            ManagementObjectCollection virtualDirectorySettings = managementObjectSearcher.Get();
 
-            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (ManagementObject virtualDirectorySetting in virtualDirectorySettings)
+            var enumerator = virtualDirectorySettings.GetEnumerator();
+            if (!enumerator.MoveNext())
                 {
-                string? virtualDirName = virtualDirectorySetting["Name"] as string;
-                //string path = virtualDirectorySetting["Path"] as string;
-                string? appPool = virtualDirectorySetting["AppPoolId"] as string;
-
-                if (string.Equals(virtualDirName, applicationName, StringComparison.OrdinalIgnoreCase)) 
-                    {
-                    return appPool;
-                    }
+                return null;
                 }
-            return null;
+
+            var virtualDirectorySetting = (ManagementObject) enumerator.Current;
+
+            var appPool = virtualDirectorySetting["AppPoolId"] as string;
+            return appPool;
             }
 
         private AppPoolState GetAppPoolState(WapiPool wapiPool)
             {
-            ManagementScope scope = GetManagementScope(wapiPool.WapiServer);
+            var managementScope = GetManagementScope(wapiPool.WapiServer);
 
-            // Query IIS WMI property
-            ObjectQuery objectQuery = new ObjectQuery("SELECT * FROM IISApplicationPoolSetting");
+            string applicationPoolName = $"W3SVC/AppPools/{wapiPool.AppPool}";
+            var objectQuery = new ObjectQuery($"SELECT * FROM IISApplicationPoolSetting WHERE Name = \"{applicationPoolName}\"");
 
-            // Search and collect details thru WMI methods
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, objectQuery);
-            ManagementObjectCollection applicationPoolSettings = searcher.Get();
+            var managementObjectSearcher = new ManagementObjectSearcher(managementScope, objectQuery);
+            ManagementObjectCollection applicationPoolSettings = managementObjectSearcher.Get();
 
-            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (ManagementObject applicationPoolSetting in applicationPoolSettings)
+            var enumerator = applicationPoolSettings.GetEnumerator();
+            if (!enumerator.MoveNext())
                 {
-                // full name is of form W3SVC/AppPools/DefaultAppPool
-                string? fullAppName = applicationPoolSetting["Name"] as string;
-                string? partialAppName = fullAppName?.Split('/')[2];
-                AppPoolState appPoolState = (AppPoolState) applicationPoolSetting["AppPoolState"];
-
-                if (string.Equals(partialAppName, wapiPool.AppPool, StringComparison.OrdinalIgnoreCase)) 
-                    {
-                    return appPoolState;
-                    }
+                return AppPoolState.Unknown;
                 }
-            return AppPoolState.Unknown;
+
+            var applicationPoolSetting = (ManagementObject) enumerator.Current;
+
+            var appPoolState = (AppPoolState) applicationPoolSetting["AppPoolState"];
+            return appPoolState;
             }
 
         private void SwitchOffRunningWapis(IEnumerable<WapiPool> wapisAndPools)
@@ -110,11 +100,11 @@ namespace PublishFor3E
                 try
                     {
                     SendControlRequestToAppPool(item, "Stop");
-                    Console.WriteLine("done");
+                    Console.WriteLine(" done");
                     }
                 catch (Exception ex)
                     {
-                    Console.WriteLine($"failed {ex.Message}");
+                    Console.WriteLine($" failed {ex.Message}");
                     }
                 }
             }
@@ -127,11 +117,11 @@ namespace PublishFor3E
                 try
                     {
                     SendControlRequestToAppPool(item, "Start");
-                    Console.WriteLine("done");
+                    Console.WriteLine(" done");
                     }
                 catch (Exception ex)
                     {
-                    Console.WriteLine($"failed {ex.Message}");
+                    Console.WriteLine($" failed {ex.Message}");
                     }
                 }
             }
@@ -146,24 +136,22 @@ namespace PublishFor3E
                 throw new ArgumentOutOfRangeException(nameof(action), "Specify Start, Stop or Recycle");
                 }
 
-            ManagementScope scope = GetManagementScope(wapiPool.WapiServer);
+            var managementScope = GetManagementScope(wapiPool.WapiServer);
 
-            // IIS WMI object IISApplicationPool to perform actions on IIS Application Pool
-            ObjectQuery objectQuery = new ObjectQuery("SELECT * FROM IISApplicationPool");
+            string applicationPoolName = $"W3SVC/AppPools/{wapiPool.AppPool}";
+            var objectQuery = new ObjectQuery($"SELECT * FROM IISApplicationPool WHERE Name = \"{applicationPoolName}\"");
 
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, objectQuery);
-            ManagementObjectCollection applicationPools = searcher.Get();
+            var managementObjectSearcher = new ManagementObjectSearcher(managementScope, objectQuery);
+            ManagementObjectCollection applicationPools = managementObjectSearcher.Get();
 
-            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (ManagementObject applicationPool in applicationPools)
+            var enumerator = applicationPools.GetEnumerator();
+            if (!enumerator.MoveNext())
                 {
-                string? fullAppName = applicationPool["Name"] as string;
-                string? partialAppName = fullAppName?.Split('/')[2];
-                if (string.Equals(partialAppName, wapiPool.AppPool, StringComparison.OrdinalIgnoreCase))
-                    {
-                    applicationPool.InvokeMethod(action, null!);
-                    }
+                return;
                 }
+
+            var applicationPool = (ManagementObject) enumerator.Current;
+            applicationPool.InvokeMethod(action, null!);
             }
 
         private ManagementScope GetManagementScope(string wapiServer)
@@ -179,6 +167,7 @@ namespace PublishFor3E
                 // requires a certain user privilege to be enabled.
                 EnablePrivileges = true
                 };
+
             if (this._publishParameters.WmiCredentials != null)
                 {
                 // https://web.archive.org/web/20150213044821/http://www.manageengine.com/network-monitoring/help/troubleshoot_opmanager/troubleshoot_wmi.html
@@ -186,8 +175,8 @@ namespace PublishFor3E
                 options.Password = this._publishParameters.WmiCredentials.Password;
                 }
 
-            ManagementScope scope = new ManagementScope($@"\\{wapiServer}\root\MicrosoftIISv2", options);
-            return scope;
+            var result = new ManagementScope($@"\\{wapiServer}\root\MicrosoftIISv2", options);
+            return result;
             }
 
         private HttpClient BuildHttpClient()
