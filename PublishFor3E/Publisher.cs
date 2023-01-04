@@ -170,7 +170,6 @@ namespace PublishFor3E
 
             if (this._publishParameters.WmiCredentials != null)
                 {
-                // https://web.archive.org/web/20150213044821/http://www.manageengine.com/network-monitoring/help/troubleshoot_opmanager/troubleshoot_wmi.html
                 options.Username = $"{this._publishParameters.WmiCredentials.Domain}\\{this._publishParameters.WmiCredentials.UserName}";
                 options.Password = this._publishParameters.WmiCredentials.Password;
                 }

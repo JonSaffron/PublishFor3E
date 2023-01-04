@@ -2,7 +2,7 @@
 
 namespace PublishFor3E
     {
-    internal class Target : IEquatable<Target>
+    internal sealed class Target : IEquatable<Target>
         {
         public readonly Uri BaseUri;
         public readonly string Environment;
@@ -99,7 +99,7 @@ namespace PublishFor3E
             {
             if (ReferenceEquals(t1, t2))
                 return false;
-            if ((object?) t1 == null || (object?) t2 == null)
+            if (t1 == null || t2 == null)
                 return true;
             return t1.BaseUri != t2.BaseUri;
             }
@@ -108,7 +108,7 @@ namespace PublishFor3E
             {
             if (ReferenceEquals(t1, t2))
                 return true;
-            if ((object?)t1 == null || (object?)t2 == null)
+            if (t1 == null || t2 == null)
                 return false;
             return t1.BaseUri == t2.BaseUri;
             }

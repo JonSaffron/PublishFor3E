@@ -43,8 +43,24 @@ namespace PublishFor3E
                 xmlDoc.AppendChild(environments);
                 }
 
+            var environmentList = environments.ChildNodes.OfType<XmlElement>().Select(element => element.Name).ToList();
             var environment = publishParameters.Target.Environment;
-            XmlElement environmentElement = (XmlElement) (environments.SelectSingleNode($"{environment}") ?? environments.AppendChild(xmlDoc.CreateElement(environment))!);
+            var matches =  environmentList.Where(item => item.Equals(environment, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            XmlElement environmentElement;
+            switch (matches.Count)
+                {
+                case 0:
+                    environmentElement = xmlDoc.CreateElement(environment);
+                    environments.AppendChild(environmentElement);
+                    break;
+                case 1:
+                    environmentElement = (XmlElement) (environments.SelectSingleNode(matches[0])!);
+                    break;
+                default:
+                    Console.WriteLine("XML settings file contains duplicate definitions for the environment - settings cannot be updated.");
+                    return;
+                }
 
             XmlElement baseUri = (XmlElement) (environmentElement.SelectSingleNode("BaseUri") ?? environmentElement.AppendChild(xmlDoc.CreateElement("BaseUri"))!);
             baseUri.InnerText = publishParameters.Target.BaseUri.ToString();
@@ -82,10 +98,13 @@ namespace PublishFor3E
                 return null;
                 }
 
-            var environmentList = new List<string>();
-            foreach (XmlElement element in environments.ChildNodes)
+            var environmentList = environments.ChildNodes.OfType<XmlElement>().Select(element => element.Name).ToList();
+            HashSet<string> uniqueEnvironments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            uniqueEnvironments.UnionWith(environmentList);
+            if (uniqueEnvironments.Count != environmentList.Count)
                 {
-                environmentList.Add(element.Name);
+                Console.WriteLine("XML settings file contains one or more instances of the same environment");
+                return null;
                 }
 
             List<string> matches;

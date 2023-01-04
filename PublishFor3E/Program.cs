@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-// https://www.codeproject.com/Tips/1063552/IIS-Application-Pool-Operations-via-Csharp
-
 namespace PublishFor3E
     {
     internal static class Program

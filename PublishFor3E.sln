@@ -5,11 +5,14 @@ VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PublishFor3E", "PublishFor3E\PublishFor3E.csproj", "{CC3E9A50-6DEB-4529-814C-22923D708F8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPublishFor3E", "TestPublishFor3E\TestPublishFor3E.csproj", "{AFA1474E-4FFE-406F-A4F3-BBE1E08FDD31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestPublishFor3E", "TestPublishFor3E\TestPublishFor3E.csproj", "{AFA1474E-4FFE-406F-A4F3-BBE1E08FDD31}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6625553E-C126-46B3-8193-EA45C6EA7340}"
 	ProjectSection(SolutionItems) = preProject
+		Acknowledgements.txt = Acknowledgements.txt
 		README.md = README.md
+		Sample PublishSettings.xml = Sample PublishSettings.xml
+		Screenshot.png = Screenshot.png
 	EndProjectSection
 EndProject
 Global

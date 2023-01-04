@@ -1,0 +1,70 @@
+Dim tServer = Query.NxNtfServer.Current
+
+dim selectQ as ISelect = QueryBuilder.SelectFrom(tServer)
+call selectQ.Values(tServer.ServerName)
+Call selectQ.Where(tServer.Instance.IsSimilarTo("/te_3e_gd_dev/%"))
+call selectQ.Where(tServer.LastUpdate.IsGreaterOrEqualTo(Exp.CurrentTimestamp.Minus(1, DatePart.Day)))
+
+return selectQ
+
+-----------------------
+
+<SELECT ID="SelectStatement" Class="NextGen.Framework.OQL.Symbols.SelectStatement" xmlns="http://elite.com/schemas/query">
+  <OQL_CONTEXT Class="NextGen.Framework.Managers.ObjectMgr.ExContextProvider">
+    <NODEMAP ID="Node#1" QueryID="NxNtfServer" Class="NextGen.Application.Query.NxNtfServer" Assembly="NextGen.Archetype.NxNtfServer" />
+  </OQL_CONTEXT>
+  <SELECT_LIST>
+    <SINGLE_SELECT Union="Distinct">
+      <NODE NodeID="Node#1" />
+      <VALUES>
+        <VALUE>
+          <LEAF QueryID="ServerName">
+            <NODE NodeID="Node#1" />
+          </LEAF>
+        </VALUE>
+      </VALUES>
+      <WHERE>
+        <X_AND_Y>
+          <X>
+            <X_IS_SIMILAR_TO_Y>
+              <X>
+                <LEAF QueryID="Instance">
+                  <NODE NodeID="Node#1" />
+                </LEAF>
+              </X>
+              <Y>
+                <UNICODE_STRING Value="%%ServerName%%" />
+              </Y>
+            </X_IS_SIMILAR_TO_Y>
+          </X>
+          <Y>
+            <X_IS_GREATER_THAN_OR_EQUAL_TO_Y>
+              <X>
+                <LEAF QueryID="LastUpdate">
+                  <NODE NodeID="Node#1" />
+                </LEAF>
+              </X>
+              <Y>
+                <X_DATESUB_Y Units="Day">
+                  <X>
+                    <CAST>
+                      <X>
+                        <CURRENT_TIMESTAMP />
+                      </X>
+                      <TYPE>
+                        <DATE_TYPE />
+                      </TYPE>
+                    </CAST>
+                  </X>
+                  <Y>
+                    <INT_NUM Value="1" />
+                  </Y>
+                </X_DATESUB_Y>
+              </Y>
+            </X_IS_GREATER_THAN_OR_EQUAL_TO_Y>
+          </Y>
+        </X_AND_Y>
+      </WHERE>
+    </SINGLE_SELECT>
+  </SELECT_LIST>
+</SELECT>

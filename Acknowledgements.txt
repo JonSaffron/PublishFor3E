@@ -1,0 +1,7 @@
+The code for talking to IIS and stopping and restarting the app pools is based on this article:
+https://www.codeproject.com/Tips/1063552/IIS-Application-Pool-Operations-via-Csharp
+which is subject to the following license:
+https://www.codeproject.com/info/cpol10.aspx
+
+The information on how to connect to WMI using different credentials was taken from the article archived here:
+https://web.archive.org/web/20150213044821/http://www.manageengine.com/network-monitoring/help/troubleshoot_opmanager/troubleshoot_wmi.html

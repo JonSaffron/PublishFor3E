@@ -5,7 +5,7 @@ using System.Net;
 
 namespace PublishFor3E
     {
-    internal class PublishParameters: IEquatable<PublishParameters>
+    internal sealed class PublishParameters: IEquatable<PublishParameters>
         {
         public Target Target { get; }
 
@@ -64,7 +64,7 @@ namespace PublishFor3E
             {
             if (ReferenceEquals(t1, t2))
                 return false;
-            if ((object?) t1 == null || (object?) t2 == null)
+            if (t1 == null || t2 == null)
                 return true;
             return t1.Target != t2.Target || !t1._wapis.SetEquals(t2.Wapis);
             }
@@ -73,7 +73,7 @@ namespace PublishFor3E
             {
             if (ReferenceEquals(t1, t2))
                 return true;
-            if ((object?)t1 == null || (object?)t2 == null)
+            if (t1 == null || t2 == null)
                 return false;
             return t1.Target == t2.Target && t1._wapis.SetEquals(t2.Wapis);
             }
