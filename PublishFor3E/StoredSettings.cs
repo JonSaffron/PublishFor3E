@@ -11,7 +11,7 @@ namespace PublishFor3E
         {
         internal static void SavePublishParameters(PublishParameters publishParameters)
             {
-            string path = SettingsFile();
+            string path = PathToSettingsFile();
             XmlDocument xmlDoc;
             XmlElement? environments;
             if (File.Exists(path))
@@ -73,7 +73,7 @@ namespace PublishFor3E
 
         internal static PublishParameters? LoadPublishParameters(string criteria)
             {
-            string path = SettingsFile();
+            string path = PathToSettingsFile();
             if (!File.Exists(path))
                 {
                 Console.WriteLine($"Could not load settings file {path}: File does not exist");
@@ -147,15 +147,17 @@ namespace PublishFor3E
             if (!Target.TryParse(baseUri!, out Target? target, out string? reason))
                 {
                 Console.WriteLine($"Saved URL for environment {matches[0]} is invalid: {reason}");
+                return null;
                 }
 
             var result = new PublishParameters(target!);
             // ReSharper disable once RedundantSuppressNullableWarningExpression - wapis is not null thanks to using IsNullOrWhiteSpace but compiler flags emits a warning without explicit suppression
-            result.AddWapis(wapis!.Split(' '));
+            var wapiList = wapis!.Split(new [] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            result.AddWapis(wapiList);
             return result;
             }
 
-        internal static string SettingsFile()
+        internal static string PathToSettingsFile()
             {
             string directory = AppContext.BaseDirectory;
             var fileWithoutExtension = Assembly.GetExecutingAssembly().GetName().Name;

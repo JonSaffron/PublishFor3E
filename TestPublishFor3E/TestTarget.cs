@@ -66,6 +66,9 @@ namespace TestPublishFor3E
             Assert.AreEqual(t1, t2);
             Assert.AreEqual(t1, t3);
             Assert.AreNotEqual(t1, t4);
+
+            Assert.AreNotEqual(t1, null);
+            Assert.AreNotEqual(null, t2);
             }
         }
     }

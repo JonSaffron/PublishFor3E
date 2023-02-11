@@ -73,7 +73,7 @@ namespace PublishFor3E
             {
             if (ReferenceEquals(t1, t2))
                 return true;
-            if (t1 == null || t2 == null)
+            if (ReferenceEquals(t1, null) || ReferenceEquals(t2, null))
                 return false;
             return t1.Target == t2.Target && t1._wapis.SetEquals(t2.Wapis);
             }

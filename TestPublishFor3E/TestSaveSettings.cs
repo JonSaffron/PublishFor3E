@@ -66,7 +66,7 @@ namespace TestPublishFor3E
 
         private void InitialSetup()
             {
-            File.Delete(StoredSettings.SettingsFile());
+            File.Delete(StoredSettings.PathToSettingsFile());
             Target target;
 
             target = Target.Parse("http://mywapiserver/TE_3E_UNITTEST");

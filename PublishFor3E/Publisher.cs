@@ -24,11 +24,23 @@ namespace PublishFor3E
             {
             Console.WriteLine($"Checking WAPI servers on {this._publishParameters.Target.Environment}");
             var wapisAndPools = GetRunningAppPools().ToList();
-            SwitchOffRunningWapis(wapisAndPools);
-            StartPublish();
-            Console.WriteLine("Publishing started");
-            var publishResult = MonitorPublishingState();
-            TurnAppPoolsBackOn(wapisAndPools);
+            
+            State publishResult;
+            try
+                {
+                SwitchOffRunningWapis(wapisAndPools);
+                publishResult = StartPublish();
+                if (publishResult == State.Ongoing)
+                    {
+                    Console.WriteLine("Publishing started");
+                    publishResult = MonitorPublishingState();
+                    }
+                }
+            finally
+                {
+                TurnAppPoolsBackOn(wapisAndPools);
+                }
+
             return publishResult == State.Succeeded;
             }
 
@@ -191,7 +203,7 @@ namespace PublishFor3E
             return result;
             }
 
-        private void StartPublish()
+        private State StartPublish()
             {
             var response = CallDesignerService("PublishAll");
             if (response != "started")
@@ -200,8 +212,11 @@ namespace PublishFor3E
                     {
                     response = "(no response)";
                     }
-                throw new InvalidOperationException($"Could not start publishing: {response}");
+                Console.WriteLine($"Could not start publishing: {response}");
+                return State.Failed;
                 }
+
+            return State.Ongoing;
             }
 
         private State MonitorPublishingState()

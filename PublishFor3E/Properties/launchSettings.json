@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PublishFor3E": {
+      "commandName": "Project",
+      "commandLineArgs": "gd_dev"
+    }
+  }
+}

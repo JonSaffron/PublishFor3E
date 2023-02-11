@@ -11,12 +11,13 @@ namespace PublishFor3E
             try
                 {
                 Console.WriteLine("Publish (and be damned) on a 3E environment");
-                Console.WriteLine("https://github.com/JonSaffron/PublishFor3E");
-                Console.WriteLine();
                 if (args.Length == 0)
                     {
                     string executableName = Assembly.GetExecutingAssembly().GetName().Name!;
                     string exampleEnvName = DateTime.Today.DayOfWeek.ToString("G").ToUpperInvariant();
+                    Console.WriteLine("https://github.com/JonSaffron/PublishFor3E");
+                    Console.WriteLine($"Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+                    Console.WriteLine();
                     Console.WriteLine($"Usage: {executableName} <environment-url> [wapi,wapi...]");
                     Console.WriteLine($"Where <environment-url> is a url like http://my3eserver/TE_3E_{exampleEnvName}/");
                     Console.WriteLine("and [wapi,wapi...] is an optional list of wapi servers to recycle.");
@@ -59,7 +60,7 @@ namespace PublishFor3E
                 }
             catch (Exception ex)
                 {
-                Console.WriteLine($"Publish failed: {ex.Message}");
+                Console.WriteLine($"An unexpected error occurred:\r\n{ex}");
                 return 1;
                 }
             }
@@ -100,13 +101,13 @@ namespace PublishFor3E
         internal static bool TryParseForShortCutForm(string criteria, out PublishParameters? publishParameters)
             {
             publishParameters = StoredSettings.LoadPublishParameters(criteria);
-            bool isSuccessful = publishParameters != null;
-            if (isSuccessful)
+            if (publishParameters != null)
                 {
-                Console.WriteLine($"Publishing on environment {publishParameters!.Target.Environment}");
+                Console.WriteLine($"Publishing on environment {publishParameters.Target.Environment}");
+                return true;
                 }
 
-            return isSuccessful;
+            return false;
             }
 
         internal static IEnumerable<string> ExtractWapiList(string wapiList)
